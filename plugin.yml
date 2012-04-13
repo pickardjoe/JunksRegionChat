@@ -1,0 +1,7 @@
+name: JunksRegionChat
+main: com.computerosity.bukkit.regionchat.RegionChatPlugin
+version: 0.1
+commands:
+    rc:
+         description: RegionChat commands
+         usage: /rc [canhear|public|private]
