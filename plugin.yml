@@ -1,6 +1,22 @@
 name: JunksRegionChat
 main: com.computerosity.bukkit.regionchat.RegionChatPlugin
-version: 0.1
+version: 1.2
+permissions:
+    jrc.*:
+        description: Access all region chat commands
+        children:
+            jrc.public: true
+            jrc.private: true
+            jrc.canhear: true
+    jrc.canhear:
+        description: Display list of players in earshot
+        default: true
+    jrc.private:
+        description: Set region as private chat
+        default: false
+    jrc.public:
+        description: Set region as public chat
+        default: false
 commands:
     rc:
          description: RegionChat commands

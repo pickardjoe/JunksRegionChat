@@ -27,11 +27,21 @@ public class RegionChatCommand implements CommandExecutor
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] split)
     {
+    	boolean ok = false;
+    	
     	Player player = null;
         if ((sender instanceof Player)) player = (Player) sender;
+
+        if(player==null) return false;
         
+    	if (!player.hasPermission("jrc.public")) 
+    	{
+    		player.sendMessage("No permission to use this command");
+    		return ok;
+    	}
+
         if (split.length == 0)
-            CommandHelp(player);
+            ok = CommandHelp(player);
         else
         {
             String token = split[0];
@@ -46,22 +56,28 @@ public class RegionChatCommand implements CommandExecutor
             }
 
             if (token.equalsIgnoreCase("canhear"))
-            	CommandCanHear(player);
+            	ok = CommandCanHear(player);
             else if (token.equalsIgnoreCase("private"))
-            	CommandPrivate(player,arg);
+            	ok = CommandPrivate(player,arg);
             else if (token.equalsIgnoreCase("public"))
-            	CommandPublic(player,arg);
+            	ok = CommandPublic(player,arg);
         }
         
-    	return true;
+    	return ok;
     }
     
-    private void CommandPrivate(Player player,String region)
+    private boolean CommandPrivate(Player player,String region)
 	{
+    	if (!player.hasPermission("jrc.private")) 
+    	{
+    		player.sendMessage("No permission to use this command");
+    		return false;
+    	}
+
     	if(region.length()==0)
     	{
     		player.sendMessage("Syntax: /rc private <region>");
-    		return;
+    		return false;
     	}
     	
     	if(plugin.SetRegion(region, player.getName()))		
@@ -72,14 +88,21 @@ public class RegionChatCommand implements CommandExecutor
     	{
     		player.sendMessage("RegionChat set failed (already set?)");
     	}
+		return true;
 	}
 
-	private void CommandPublic(Player player,String region)
+	private boolean CommandPublic(Player player,String region)
 	{
+    	if (!player.hasPermission("jrc.public")) 
+    	{
+    		player.sendMessage("No permission to use this command");
+    		return false;
+    	}
+
     	if(region.length()==0)
     	{
     		player.sendMessage("Syntax: /rc public <region>");
-    		return;
+    		return false;
     	}
     	
 		if(plugin.UnsetRegion(region,player.getName()))
@@ -90,18 +113,27 @@ public class RegionChatCommand implements CommandExecutor
     	{
     		player.sendMessage("RegionChat unset failed (not found)");
     	}
+		return true;
+
 	}
 
-	public void CommandHelp(Player player)
+	public boolean CommandHelp(Player player)
     {
     	player.sendMessage("Commands:\n--------\n");
     	player.sendMessage("/rc canhear          Shows players who can hear you");
     	player.sendMessage("/rc private <region> Set region to private chat");
     	player.sendMessage("/rc public <region>  Set region to public chat");
+		return true;
     }
     
-    public void CommandCanHear(Player player)
+    public boolean CommandCanHear(Player player)
     {
+    	if (!player.hasPermission("jrc.canhear")) 
+    	{
+    		player.sendMessage("No permission to use this command");
+    		return false;
+    	}
+    
     	Location location = player.getLocation();
         ArrayList<Player> list = plugin.GetPlayersInEarshot(location);
 
@@ -130,5 +162,6 @@ public class RegionChatCommand implements CommandExecutor
 			else
 				player.sendMessage("Nobody can hear you...");
 		}
+		return true;
     }
 }

@@ -40,7 +40,7 @@ public class RegionChatPlayerListener implements Listener
 		
         // Get the sent message
         String message = event.getMessage();
-        
+
         // Get player
 		Player player = event.getPlayer();
 		Location location = player.getLocation();
@@ -50,6 +50,15 @@ public class RegionChatPlayerListener implements Listener
 		// Send to only selected players if required
 		if(list!=null)
 		{
+	        // If the message starts with an asterisk it's a shout
+	        if(message.startsWith("*")) 
+	        {
+	        	// Remove the asterisk
+	        	event.setMessage(message.substring(1));
+	        	return;
+	        }
+
+	        // otherwise select players to send to
 			for (Player p : list)
 			{
 				String outMessage = plugin.messageFormat;
