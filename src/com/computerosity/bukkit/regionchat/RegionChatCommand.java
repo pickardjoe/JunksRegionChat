@@ -2,6 +2,7 @@ package com.computerosity.bukkit.regionchat;
 
 import java.util.ArrayList;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -27,21 +28,18 @@ public class RegionChatCommand implements CommandExecutor
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] split)
     {
-    	boolean ok = false;
+    	boolean handled = false;
     	
     	Player player = null;
         if ((sender instanceof Player)) player = (Player) sender;
 
         if(player==null) return false;
         
-    	if (!player.hasPermission("jrc.public")) 
-    	{
-    		player.sendMessage("No permission to use this command");
-    		return ok;
-    	}
-
         if (split.length == 0)
-            ok = CommandHelp(player);
+        {
+             CommandHelp(player);
+             handled = true;
+        }
         else
         {
             String token = split[0];
@@ -56,65 +54,113 @@ public class RegionChatCommand implements CommandExecutor
             }
 
             if (token.equalsIgnoreCase("canhear"))
-            	ok = CommandCanHear(player);
+            {
+            	CommandCanHear(player);
+            	handled = true;
+            }
             else if (token.equalsIgnoreCase("private"))
-            	ok = CommandPrivate(player,arg);
+            {
+            	CommandPrivate(player,arg);
+            	handled = true;
+            }
             else if (token.equalsIgnoreCase("public"))
-            	ok = CommandPublic(player,arg);
+            {
+            	CommandPublic(player,arg);
+            	handled = true;
+            }
         }
         
-    	return ok;
+    	return handled;
     }
     
     private boolean CommandPrivate(Player player,String region)
 	{
-    	if (!player.hasPermission("jrc.private")) 
+    	boolean ok = false;
+    	
+    	// TODO: Attempt to find region if not supplied
+    	if(region.length()==0)
     	{
-    		player.sendMessage("No permission to use this command");
+    		sendPlayerMessage(player,"Syntax: /rc private <region>",ChatColor.RED);
     		return false;
     	}
 
-    	if(region.length()==0)
+    	// Get region info
+    	String isOwner = plugin.IsRegionOwner(player,region);
+    	if(isOwner==null)
     	{
-    		player.sendMessage("Syntax: /rc private <region>");
+    		sendPlayerMessage(player,"RegionChat: WorldGuard region not found",ChatColor.RED);
     		return false;
     	}
     	
-    	if(plugin.SetRegion(region, player.getName()))		
-		{
-			player.sendMessage("RegionChat set as PRIVATE");
-		}
+    	// Can set own region and region is one of theirs?
+    	if (player.hasPermission("jrc.own.private") && !isOwner.isEmpty()) ok = true;
+    	
+    	// Can set any region?
+    	if (player.hasPermission("jrc.private")) ok = true;
+    	
+    	// If we're permitted - go for it
+    	if(ok)
+    	{
+	    	if(plugin.SetRegion(region, player.getName()))		
+			{
+	    		sendPlayerMessage(player,"RegionChat: set as PRIVATE",ChatColor.GREEN);
+			}
+	    	else
+	    	{
+	    		sendPlayerMessage(player,"RegionChat: already PRIVATE",ChatColor.RED);
+	    	}
+    	}
     	else
     	{
-    		player.sendMessage("RegionChat set failed (already set?)");
+    		sendPlayerMessage(player,"RegionChat: No permission to set this region private",ChatColor.RED);
     	}
-		return true;
+    	
+		return ok;
 	}
 
 	private boolean CommandPublic(Player player,String region)
 	{
-    	if (!player.hasPermission("jrc.public")) 
+    	boolean ok = false;
+    	
+    	// TODO: Attempt to find region if not supplied
+    	if(region.length()==0)
     	{
-    		player.sendMessage("No permission to use this command");
+    		sendPlayerMessage(player,"Syntax: /rc public <region>",ChatColor.RED);
     		return false;
     	}
 
-    	if(region.length()==0)
+    	// Get region info
+    	String isOwner = plugin.IsRegionOwner(player,region);
+    	if(isOwner==null)
     	{
-    		player.sendMessage("Syntax: /rc public <region>");
+    		sendPlayerMessage(player,"RegionChat: WorldGuard Region not found",ChatColor.RED);
     		return false;
     	}
     	
-		if(plugin.UnsetRegion(region,player.getName()))
-		{
-			player.sendMessage("RegionChat set as PUBLIC");
-		}
+    	// Can set own region and region is one of theirs?
+    	if (player.hasPermission("jrc.own.public") && !isOwner.isEmpty()) ok = true;
+    	
+    	// Can set any region?
+    	if (player.hasPermission("jrc.public")) ok = true;
+    	
+    	// If we're permitted - go for it
+    	if(ok)
+    	{
+			if(plugin.UnsetRegion(region,player.getName()))
+			{
+				sendPlayerMessage(player,"RegionChat: set as PUBLIC",ChatColor.GREEN);
+			}
+	    	else
+	    	{
+	    		sendPlayerMessage(player,"RegionChat: already PUBLIC",ChatColor.RED);
+	    	}
+    	}
     	else
     	{
-    		player.sendMessage("RegionChat unset failed (not found)");
+    		sendPlayerMessage(player,"RegionChat: No permission to set this region public",ChatColor.RED);
     	}
-		return true;
-
+    	
+		return ok;
 	}
 
 	public boolean CommandHelp(Player player)
@@ -130,7 +176,7 @@ public class RegionChatCommand implements CommandExecutor
     {
     	if (!player.hasPermission("jrc.canhear")) 
     	{
-    		player.sendMessage("No permission to use this command");
+    		sendPlayerMessage(player,"RegionChat: No permission to use this command",ChatColor.RED);
     		return false;
     	}
     
@@ -140,7 +186,7 @@ public class RegionChatCommand implements CommandExecutor
 		// Send to only selected players if required
 		if(list==null) 
 		{
-			player.sendMessage("Everyone can hear you");
+			player.sendMessage("RegionChat: Everyone can hear you");
 		}
 		else
 		{
@@ -156,12 +202,22 @@ public class RegionChatCommand implements CommandExecutor
 			
 			if(pList.length()>0)
 			{
-				player.sendMessage("The following players can hear you:");
+				player.sendMessage("RegionChat: The following players can hear you:");
 				player.sendMessage(pList);
 			}
 			else
-				player.sendMessage("Nobody can hear you...");
+				player.sendMessage("RegionChat: Nobody can hear you...");
 		}
 		return true;
     }
+
+    public void sendPlayerMessage(Player player,String message)
+    {
+    	player.sendMessage(message);
+    }
+    
+    public void sendPlayerMessage(Player player,String message,ChatColor color)
+	{
+		player.sendMessage(color + message + ChatColor.WHITE);
+	}
 }

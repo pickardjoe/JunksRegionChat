@@ -16,6 +16,7 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sk89q.worldguard.domains.DefaultDomain;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
@@ -203,7 +204,7 @@ public class RegionChatPlugin extends JavaPlugin
 		
 		return list;
 	}
-	
+
 	public void WriteToConsole(String message)
     {
         System.out.println("[JRC] " + message);
@@ -230,5 +231,18 @@ public class RegionChatPlugin extends JavaPlugin
 	public WorldGuardPlugin getWorldGuard()
 	{
 		return wgPlugin;
+	}
+
+	public String IsRegionOwner(Player player, String region)
+	{
+		RegionManager regionManager = wgPlugin.getRegionManager(player.getWorld());
+		ProtectedRegion pregion = regionManager.getRegion(region);
+		if (pregion==null) return null;
+		
+		DefaultDomain d = pregion.getOwners();
+		if(d.contains(player.getName()))
+			return player.getName();
+		else
+			return "";
 	}
 }

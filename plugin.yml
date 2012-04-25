@@ -3,20 +3,32 @@ main: com.computerosity.bukkit.regionchat.RegionChatPlugin
 version: 1.2
 permissions:
     jrc.*:
-        description: Access all region chat commands
+        description: Can apply RegionChat to all regions
         children:
+            jrc.canhear: true
             jrc.public: true
             jrc.private: true
+    jrc.own.*:
+        description: Can apply RegionChat to own regions
+        children:
             jrc.canhear: true
+            jrc.own.public: true
+            jrc.own.private: true
     jrc.canhear:
-        description: Display list of players in earshot
+        description: Can display players within earshot
         default: true
     jrc.private:
-        description: Set region as private chat
+        description: Can set any region as private chat region
         default: false
     jrc.public:
-        description: Set region as public chat
+        description: Can set any region as public chat region
         default: false
+    jrc.own.private:
+        description: Can set owned region as private
+        default: true
+    jrc.own.public:
+        description: Can set owned region as public
+        default: true
 commands:
     rc:
          description: RegionChat commands
