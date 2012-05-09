@@ -202,7 +202,7 @@ public class RegionChatCommand implements CommandExecutor
 			
 			if(pList.length()>0)
 			{
-				player.sendMessage("RegionChat: The following players can hear you:");
+				sendPlayerMessage(player, "RegionChat: The following players can hear you:", ChatColor.GREEN);
 				player.sendMessage(pList);
 			}
 			else

@@ -36,6 +36,7 @@ public class RegionChatPlugin extends JavaPlugin
 	private WorldGuardPlugin wgPlugin=null;
 	public String messageFormat="";
 	public ChatColor messageColour;
+	public boolean completelyIsolated = false;	//Edit by RiddleMeThis: This variable allows chat coming into a private region to be disabled. 
 	private Hashtable<String,String> regions = new Hashtable<String,String>();
 	
 	@SuppressWarnings("unused")
@@ -62,7 +63,7 @@ public class RegionChatPlugin extends JavaPlugin
     	// Setup listener
     	playerListener = new RegionChatPlayerListener(this);
     	
-        // Write initialisation success
+        // Write initialization success
         PluginDescriptionFile pdfFile = this.getDescription();
         WriteToConsole("RegionChat Version " + pdfFile.getVersion() + " is enabled");
     }
@@ -72,6 +73,8 @@ public class RegionChatPlugin extends JavaPlugin
 		// Get configuration file
         getConfig().options().copyDefaults(true);
 		FileConfiguration config = this.getConfig();
+		
+		completelyIsolated = config.getBoolean("completelyIsolated"); //Edit by RiddleMeThis: Loads the config option for the option I added.  See comment above. 
 
 		messageFormat = config.getString("format", "({DISPLAYNAME}) {MESSAGE}");
 		try
@@ -113,6 +116,7 @@ public class RegionChatPlugin extends JavaPlugin
 		
 		config.set("format",messageFormat);
 		config.set("colour",messageColour.name());
+		config.set("completelyIsolated", completelyIsolated);	//Edit by RiddleMeThis: Saves the config option I added.
 		
 		// Write regions
 		ConfigurationSection cr = config.createSection("regions");
@@ -201,6 +205,17 @@ public class RegionChatPlugin extends JavaPlugin
 				}
 			}
 		}
+		//**** Begin Edit by RiddleMeThis:
+		//				Changes "Everyone can hear you" to a list of users.
+		if(list == null)
+		{
+			list = new ArrayList<Player>();
+			for(Player bPlayer : getServer().getOnlinePlayers())
+			{
+				list.add(bPlayer);
+			}
+		}
+		//**** End Edit by RiddleMeThis
 		
 		return list;
 	}
